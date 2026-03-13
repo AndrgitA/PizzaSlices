@@ -1296,6 +1296,31 @@ PizzaSlices:RegisterModule('settings', function ()
         f.tex = f:CreateTexture(f:GetName() .. 'Tex', 'ARTWORK')
         f.tex:SetAllPoints(f)
       end
+      
+      if string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames then
+        local macroName = string.gsub(slice.name, 'Macro: ', '')
+        if not f.text then
+          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
+          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+          f.text:SetTextColor(1, 1, 1, 1)
+        end
+        f.text:SetText(PS.utils.getTextureText(macroName))
+        f.text:Show()
+      elseif string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
+        local outfitName = slice.name;
+        if not f.text then
+          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
+          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+          f.text:SetTextColor(1, 1, 1, 1)
+        end
+        f.text:SetText(PS.utils.getTextureText(outfitName))
+        f.text:Show()
+      elseif (f.text) then
+        f.text:Hide();
+      end
+
       f.tex:SetTexture(slice.tex)
     end
   end
@@ -1400,6 +1425,30 @@ PizzaSlices:RegisterModule('settings', function ()
         clone:StartMoving()
         clone.tex:SetTexture(sl.tex)
 
+        if string.sub(sl.action, 1, 6) == 'macro:' and C.showMacroNames then
+          local macroName = string.gsub(sl.name, 'Macro: ', '')
+          if not f.clone.text then
+            f.clone.text = f:CreateFontString(f.clone:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+            f.clone.text:SetPoint('CENTER', f.clone, 'CENTER', 0, 0)
+            f.clone.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+            f.clone.text:SetTextColor(1, 1, 1, 1)
+          end
+          f.clone.text:SetText(PS.utils.getTextureText(macroName))
+          f.clone.text:Show()
+        elseif string.sub(sl.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
+          local outfitName = sl.name;
+          if not f.clone.text then
+            f.clone.text = f:CreateFontString(f.clone:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+            f.clone.text:SetPoint('CENTER', f.clone, 'CENTER', 0, 0)
+            f.clone.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+            f.clone.text:SetTextColor(1, 1, 1, 1)
+          end
+          f.clone.text:SetText(PS.utils.getTextureText(outfitName))
+          f.clone.text:Show()
+        else
+          f.clone.text:Hide();
+        end
+
         rings.edit.content.ring:Hide()
         rings.edit.content.ringdrop:Show()
       end)
@@ -1410,12 +1459,40 @@ PizzaSlices:RegisterModule('settings', function ()
         rings.edit.content.ring:Show()
         f.clone:StopMovingOrSizing()
         f.clone:Hide()
+        if (f.clone.text) then
+          f.clone.text:Hide();
+        end
       end)
 
       if not f.tex then
         f.tex = f:CreateTexture(f:GetName() .. 'Tex', 'ARTWORK')
         f.tex:SetAllPoints(f)
       end
+
+      if string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames then
+        local macroName = string.gsub(slice.name, 'Macro: ', '')
+        if not f.text then
+          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
+          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+          f.text:SetTextColor(1, 1, 1, 1)
+        end
+        f.text:SetText(PS.utils.getTextureText(macroName))
+        f.text:Show()
+      elseif string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
+        local outfitName = slice.name;
+        if not f.text then
+          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
+          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+          f.text:SetTextColor(1, 1, 1, 1)
+        end
+        f.text:SetText(PS.utils.getTextureText(outfitName))
+        f.text:Show()
+      elseif (f.text) then
+        f.text:Hide();
+      end
+
       f.tex:SetTexture(slice.tex)
     end
   end

@@ -172,6 +172,13 @@ local actions = {
       end
     end
   end,
+  
+  outfit = function(v, slice)
+    local applyOutfit = PS.outfitter.apply;
+    if (slice and slice.data) then
+      applyOutfit(slice.data);
+    end
+  end
 }
 
 function PS:TriggerSliceAction(idx)

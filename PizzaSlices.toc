@@ -11,6 +11,7 @@ src\utils.lua
 src\slices.lua
 src\rings.lua
 src\macro.lua
+src\outfitter.lua
 src\frame.lua
 src\settings.lua
 src\commands.lua

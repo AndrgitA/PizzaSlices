@@ -105,6 +105,16 @@ PizzaSlices:RegisterModule('frame', function ()
         end
         f.text:SetText(macroName)
         f.text:Show()
+      elseif string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
+        local outfitName = slice.name;
+        if not f.text then
+          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+          f.text:SetPoint('TOP', f, 'BOTTOM', 0, -5)
+          f.text:SetFont(STANDARD_TEXT_FONT, 14, 'OUTLINE')
+          f.text:SetTextColor(1, 1, 1, 1)
+        end
+        f.text:SetText(outfitName)
+        f.text:Show()
       elseif f.text then
         f.text:Hide()
       end

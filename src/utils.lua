@@ -118,6 +118,10 @@ PizzaSlices:RegisterModule('utils', function ()
     return IsAddOnLoaded('pfUI') and pfUI and pfUI.uf and pfUI.env and pfUI.env.C
   end
 
+  function PS.utils.hasOutfitter()
+    return IsAddOnLoaded("Outfitter");
+  end
+
   function PS.utils.getButtonForSlot(slot)
     if PS.utils.hasPfUI() and pfUI_config and pfUI_config.disabled.actionbar ~= '1' then
       if slot >= 1 and slot <= 12 then
@@ -257,5 +261,40 @@ PizzaSlices:RegisterModule('utils', function ()
 
   function PS.utils.hasSuperWoW()
     return SetAutoloot ~= nil
+  end
+
+  local function smartSplit(text, maxChars, maxLines)
+    local lines = {};
+    local count = 0;
+
+    for word in string.gfind(text, "%S+") do
+      if (count > maxLines - 1) then
+        break;
+      end
+
+      if string.len(word) > maxChars then
+        word = string.sub(word, 1, maxChars - 2) .. "..";
+      end
+
+      if (count > 0 and (string.len(lines[count]) + string.len(word) + 1 <= maxChars)) then
+        lines[count] = lines[count] .. " " .. word;
+      else
+        table.insert(lines, word);
+        count = count + 1;
+      end
+    end
+
+    return table.concat(lines, "\n");
+  end
+
+
+  function PS.utils.getTextureText(text, wordLen, lineLimit)
+    if (not wordLen or wordLen < 1) then
+      wordLen = 7;
+    end
+    if (not lineLimit or lineLimit < 1) then
+      lineLimit = 4;
+    end
+    return smartSplit(text, wordLen, lineLimit);
   end
 end)

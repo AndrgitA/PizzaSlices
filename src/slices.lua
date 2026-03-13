@@ -244,6 +244,48 @@ PizzaSlices:RegisterModule('slices', function ()
     return slices
   end
 
+  local function getOutfitterData()
+    local result = {};
+    if (gOutfitter_Settings and gOutfitter_Settings.Outfits) then
+      for categoryName, categoryData in pairs(gOutfitter_Settings.Outfits) do
+        if (categoryData) then
+          for index, data in pairs(categoryData) do
+            if (data.CategoryID and (data.Disabled ~= true)) then
+              table.insert(result, {
+                clearData = data,
+                outfitData = {
+                  categoryID = categoryName,
+                  outfitIndex = index,
+                },
+              });
+            end
+          end
+        end
+      end
+    end
+
+    return result;
+  end
+
+  local function getOutfitterSlices()
+    local slices = {};
+    if (PS.utils.hasOutfitter()) then
+      for i, v in pairs(getOutfitterData()) do
+        local name = v.clearData.Name;
+        if (name) then
+          table.insert(slices, {
+            name = name,
+            color = PS.utils.getRandomColor(),
+            action = "outfit:<name>",
+            data = v,
+          });
+        end
+      end
+    end
+
+    return slices;
+  end
+
   local getSlices = {
     ['Abilities'] = getSpellSlices(),
     ['Companions'] = getSpellSlices('ZzCompanions'),
@@ -254,14 +296,17 @@ PizzaSlices:RegisterModule('slices', function ()
     ['Mounts'] = getSpellSlices('ZMounts'),
     ['Raid Marks'] = getRaidmarkSlices,
     ['Toys'] = getSpellSlices('ZzzzToys'),
+    ["Outfitter"] = PS.utils.hasOutfitter() and getOutfitterSlices or nil,
   }
 
   function PS.slices.load(withSpells)
     PS.slices.categories = {}
     for category, get in pairs(getSlices) do
-      local slices = get()
-      if slices and PS.utils.length(slices) > 0 then
-        PS.slices.categories[category] = slices
+      if (get) then
+        local slices = get()
+        if slices and PS.utils.length(slices) > 0 then
+          PS.slices.categories[category] = slices
+        end
       end
     end
 
