@@ -185,6 +185,34 @@ PizzaSlices:RegisterModule('slices', function ()
     return slices
   end
 
+  local availableItemsID = {
+    [6948] = true, -- Hearthstone
+    [41915] = true, -- Verdant Rune
+    [61000] = true, -- Time-Worn Rune
+  };
+
+  local function itemFilter(id, name, type)
+    if (not (id and name)) then
+      return false;
+    end
+
+    if (availableItemsID[id]) then
+      return true;
+    end
+
+    if (type == "Quest") then
+      if (string.sub(name, 1, 5) == "Juju ") then
+        return true;
+      end
+
+      return false;
+    elseif (type == "Trade Goods") then
+      return false;
+    end
+
+    return true;
+  end
+
   local function getItemSlices()
     local slices = {}
     local added = {}
@@ -197,8 +225,7 @@ PizzaSlices:RegisterModule('slices', function ()
           local _, _, id = string.find(link, "item:(%d+):%d+:%d+:%d+")
           if id and not added[id] then
             local name, _, _, _, _, type = GetItemInfo(id)
-            local isQuestItem = type == 'Quest' and string.sub(name, 1, 5) ~= 'Juju '
-            if PS.scanner.isUsableItem(id) and not isQuestItem and type ~= 'Trade Goods' then
+            if PS.scanner.isUsableItem(id) and itemFilter(id, name, type) then
               local tex = GetContainerItemInfo(bag, slot)
               table.insert(slices, {
                 name = name,
