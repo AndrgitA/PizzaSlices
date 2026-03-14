@@ -15,6 +15,6 @@ src\outfitter.lua
 src\frame.lua
 src\settings.lua
 src\commands.lua
-src\channel.lua
+# src\channel.lua
 src\scanner.lua
-src\snowfall.lua
+# src\snowfall.lua

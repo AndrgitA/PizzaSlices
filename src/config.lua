@@ -6,7 +6,9 @@ local defaultConfig = {
     rotateOnClose = 1,
   },
   showMacroNames = false,
+  showOutfitNames = true,
   blackBorders = false,
+  customIcons = {},
 }
 
 function PizzaSlices:LoadConfig()

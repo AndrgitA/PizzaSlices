@@ -224,9 +224,9 @@ PizzaSlices:RegisterModule('slices', function ()
         if link then
           local _, _, id = string.find(link, "item:(%d+):%d+:%d+:%d+")
           if id and not added[id] then
-            local name, _, _, _, _, type = GetItemInfo(id)
-            if PS.scanner.isUsableItem(id) and itemFilter(id, name, type) then
-              local tex = GetContainerItemInfo(bag, slot)
+            local name, _, _, _, _, type = GetItemInfo(id);
+            if PS.scanner.isUsableItem(id) and itemFilter(tonumber(id), name, type) then
+              local tex = GetContainerItemInfo(bag, slot);
               table.insert(slices, {
                 name = name,
                 tex = tex,
@@ -234,7 +234,7 @@ PizzaSlices:RegisterModule('slices', function ()
                 action = 'item:<id>',
                 itemId = id,
               })
-              added[id] = true
+              added[id] = true;
             end
           end
         end
@@ -244,41 +244,30 @@ PizzaSlices:RegisterModule('slices', function ()
     return slices
   end
 
-  local function getOutfitterData()
-    local result = {};
-    if (gOutfitter_Settings and gOutfitter_Settings.Outfits) then
-      for categoryName, categoryData in pairs(gOutfitter_Settings.Outfits) do
-        if (categoryData) then
-          for index, data in pairs(categoryData) do
-            if (data.CategoryID and (data.Disabled ~= true)) then
-              table.insert(result, {
-                clearData = data,
-                outfitData = {
-                  categoryID = categoryName,
-                  outfitIndex = index,
+  local function getOutfitterSlices()
+    local slices = {}
+    if (PS.utils.hasOutfitter()) then
+      local categories = {"Complete", "Partial"}
+      for _, categoryID in pairs(categories) do
+        local outfits = Outfitter_GetOutfitsByCategoryID(categoryID);
+        if outfits then
+          for index, outfit in pairs(outfits) do
+            if outfit.Name then
+              table.insert(slices, {
+                name = outfit.Name,
+                tex = outfit.Icon,
+                color = PS.utils.getRandomColor(),
+                action = "outfit:<name>",
+                data = {
+                  clearData = outfit,
+                  outfitData = {
+                    categoryID = categoryID,
+                    outfitIndex = index,
+                  },
                 },
-              });
+              })
             end
           end
-        end
-      end
-    end
-
-    return result;
-  end
-
-  local function getOutfitterSlices()
-    local slices = {};
-    if (PS.utils.hasOutfitter()) then
-      for i, v in pairs(getOutfitterData()) do
-        local name = v.clearData.Name;
-        if (name) then
-          table.insert(slices, {
-            name = name,
-            color = PS.utils.getRandomColor(),
-            action = "outfit:<name>",
-            data = v,
-          });
         end
       end
     end
@@ -294,7 +283,7 @@ PizzaSlices:RegisterModule('slices', function ()
     ['Items'] = getItemSlices,
     ['Macros'] = getMacroSlices,
     ['Mounts'] = getSpellSlices('ZMounts'),
-    ['Raid Marks'] = getRaidmarkSlices,
+    -- ['Raid Marks'] = getRaidmarkSlices,
     ['Toys'] = getSpellSlices('ZzzzToys'),
     ["Outfitter"] = PS.utils.hasOutfitter() and getOutfitterSlices or nil,
   }

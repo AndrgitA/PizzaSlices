@@ -172,13 +172,13 @@ local actions = {
       end
     end
   end,
-  
+
   outfit = function(v, slice)
     local applyOutfit = PS.outfitter.apply;
     if (slice and slice.data) then
       applyOutfit(slice.data);
     end
-  end
+  end,
 }
 
 function PS:TriggerSliceAction(idx)
@@ -196,6 +196,7 @@ end
 function PS:Open(ringIdx, fromCommand)
   if not PizzaSlices_rings[ringIdx] then return end
 
+  PS.currentRingIdx = ringIdx
   local ring = PS.utils.clone(PizzaSlices_rings[ringIdx])
   if not ring or PS.utils.length(ring.slices) == 0 then
     PS.open = false
@@ -258,7 +259,7 @@ function PS:Close()
 end
 
 PS:RegisterEvent('ADDON_LOADED')
-PS:RegisterEvent('CHAT_MSG_CHANNEL')
+-- PS:RegisterEvent('CHAT_MSG_CHANNEL')
 PS:SetScript('OnEvent', function ()
   if event == 'ADDON_LOADED' and arg1 == PS.name then
     PS:LoadConfig()
@@ -274,27 +275,27 @@ PS:SetScript('OnEvent', function ()
     end
   end
 
-  if event == 'CHAT_MSG_CHANNEL' and arg2 ~= UnitName('player') then
-    local _, _, source = string.find(arg4, '(%d+)%.')
-    local channelName
+  -- if event == 'CHAT_MSG_CHANNEL' and arg2 ~= UnitName('player') then
+  --   local _, _, source = string.find(arg4, '(%d+)%.')
+  --   local channelName
 
-    if source then
-      _, channelName = GetChannelName(source)
-    end
+  --   if source then
+  --     _, channelName = GetChannelName(source)
+  --   end
 
-    if channelName == PS.channelName and string.sub(arg1, 1, 11) == PS:GetName() then
-      local remoteVersion = tonumber(string.sub(arg1, 13, 17))
-      if remoteVersion > PS.utils.getVersionNumber() and not PS.updateNotified then
-        PS:Print('New version available! https://github.com/Pizzahawaiii/PizzaSlices')
-        PS.updateNotified = true
-      end
-    end
-  end
+  --   if channelName == PS.channelName and string.sub(arg1, 1, 11) == PS:GetName() then
+  --     local remoteVersion = tonumber(string.sub(arg1, 13, 17))
+  --     if remoteVersion > PS.utils.getVersionNumber() and not PS.updateNotified then
+  --       PS:Print('New version available! https://github.com/Pizzahawaiii/PizzaSlices')
+  --       PS.updateNotified = true
+  --     end
+  --   end
+  -- end
 end)
 
-PS:SetScript('OnUpdate', function ()
-  if PS.clearRaidTargetAt and GetTime() > PS.clearRaidTargetAt then
-    SetRaidTarget('player', 0)
-    PS.clearRaidTargetAt = nil
-  end
-end)
+-- PS:SetScript('OnUpdate', function ()
+--   if PS.clearRaidTargetAt and GetTime() > PS.clearRaidTargetAt then
+--     SetRaidTarget('player', 0)
+--     PS.clearRaidTargetAt = nil
+--   end
+-- end)

@@ -95,25 +95,25 @@ PizzaSlices:RegisterModule('frame', function ()
         f.cdtext:Hide()
       end
 
-      if string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames then
-        local macroName = string.gsub(slice.name, 'Macro: ', '')
+      local shouldShowText = false
+      local displayName = nil
+
+      if (string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames) then
+        displayName = string.gsub(slice.name, 'Macro: ', '');
+        shouldShowText = true;
+      elseif (string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() and C.showOutfitNames) then
+        displayName = slice.name;
+        shouldShowText = true;
+      end
+
+      if shouldShowText and displayName then
         if not f.text then
           f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
           f.text:SetPoint('TOP', f, 'BOTTOM', 0, -5)
           f.text:SetFont(STANDARD_TEXT_FONT, 14, 'OUTLINE')
           f.text:SetTextColor(1, 1, 1, 1)
         end
-        f.text:SetText(macroName)
-        f.text:Show()
-      elseif string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
-        local outfitName = slice.name;
-        if not f.text then
-          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-          f.text:SetPoint('TOP', f, 'BOTTOM', 0, -5)
-          f.text:SetFont(STANDARD_TEXT_FONT, 14, 'OUTLINE')
-          f.text:SetTextColor(1, 1, 1, 1)
-        end
-        f.text:SetText(outfitName)
+        f.text:SetText(displayName)
         f.text:Show()
       elseif f.text then
         f.text:Hide()
@@ -159,7 +159,21 @@ PizzaSlices:RegisterModule('frame', function ()
         f.tex = f:CreateTexture(f:GetName() .. 'Tex', 'ARTWORK')
       end
       f.tex:SetAllPoints(f)
-      f.tex:SetTexture(ring.slices[idx].tex)
+      -- Use custom icon if set, otherwise use the default icon
+      local slice = ring.slices[idx]
+      local iconPath = slice.tex
+
+      -- Check slice object first, then fall back to config lookup
+      if slice.customIcon then
+        iconPath = slice.customIcon
+      elseif PS.currentRingIdx and PS.settings and PS.settings.getCustomIcon then
+        local customIcon = PS.settings.getCustomIcon(PS.currentRingIdx, idx)
+        if customIcon then
+          iconPath = customIcon
+        end
+      end
+
+      f.tex:SetTexture(iconPath)
       f.tex:SetAlpha(0)
 
       if not f.borderlow then

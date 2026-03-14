@@ -119,7 +119,7 @@ PizzaSlices:RegisterModule('utils', function ()
   end
 
   function PS.utils.hasOutfitter()
-    return IsAddOnLoaded("Outfitter");
+    return IsAddOnLoaded("Outfitter") and Outfitter_GetOutfitsByCategoryID;
   end
 
   function PS.utils.getButtonForSlot(slot)

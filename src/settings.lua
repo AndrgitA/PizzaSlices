@@ -102,6 +102,153 @@ PizzaSlices:RegisterModule('settings', function ()
   f.close:SetScript('OnClick', function () f:Hide() end)
 
   -----------------------------------------------------------------------------
+  -- ICON PICKER DIALOG
+  -----------------------------------------------------------------------------
+
+  local iconDialog = CreateFrame('Frame', 'PizzaSlicesIconDialog', UIParent)
+  iconDialog:Hide()
+  iconDialog:SetPoint('CENTER', 0, 0)
+  iconDialog:SetFrameStrata('FULLSCREEN_DIALOG')
+  iconDialog:SetWidth(400)
+  iconDialog:SetHeight(150)
+  iconDialog:SetMovable(true)
+  iconDialog:EnableMouse(true)
+  iconDialog:RegisterForDrag('LeftButton')
+  iconDialog:SetScript('OnDragStart', function () iconDialog:StartMoving() end)
+  iconDialog:SetScript('OnDragStop', function () iconDialog:StopMovingOrSizing() end)
+  iconDialog:SetBackdrop(backdrop)
+  iconDialog:SetBackdropColor(0, 0, 0, .95)
+  iconDialog:SetBackdropBorderColor(c.r, c.g, c.b, 1)
+
+  table.insert(UISpecialFrames, iconDialog:GetName())
+
+  iconDialog.title = iconDialog:CreateFontString(iconDialog:GetName() .. 'Title', 'OVERLAY', 'GameFontWhite')
+  iconDialog.title:SetFont(STANDARD_TEXT_FONT, 16, 'OUTLINE')
+  iconDialog.title:SetPoint('TOP', 0, -15)
+  iconDialog.title:SetText('Set Custom Icon')
+
+  iconDialog.label = iconDialog:CreateFontString(iconDialog:GetName() .. 'Label', 'OVERLAY', 'GameFontWhite')
+  iconDialog.label:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+  iconDialog.label:SetPoint('TOP', 0, -50)
+  iconDialog.label:SetText('Icon Path:')
+
+  iconDialog.input = CreateFrame('EditBox', iconDialog:GetName() .. 'Input', iconDialog)
+  iconDialog.input:SetBackdrop(backdrop)
+  iconDialog.input:SetBackdropColor(0, 0, 0, .5)
+  iconDialog.input:SetBackdropBorderColor(.5, .5, .5, 1)
+  iconDialog.input:SetWidth(360)
+  iconDialog.input:SetHeight(25)
+  iconDialog.input:SetPoint('TOP', iconDialog.label, 'BOTTOM', 0, -8)
+  iconDialog.input:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+  iconDialog.input:SetTextInsets(10, 10, 0, 0)
+  iconDialog.input:SetJustifyH('LEFT')
+  iconDialog.input:SetAutoFocus(false)
+  iconDialog.input:SetScript('OnEscapePressed', function () this:ClearFocus() iconDialog:Hide() end)
+  iconDialog.input:SetScript('OnEnterPressed', function ()
+    if iconDialog.onAccept then iconDialog.onAccept(this:GetText()) end
+    iconDialog:Hide()
+  end)
+
+  iconDialog.hint = iconDialog:CreateFontString(iconDialog:GetName() .. 'Hint', 'OVERLAY', 'GameFontWhite')
+  iconDialog.hint:SetFont(STANDARD_TEXT_FONT, 10, 'OUTLINE')
+  iconDialog.hint:SetPoint('TOP', iconDialog.input, 'BOTTOM', 0, -5)
+  iconDialog.hint:SetText('Enter icon path or just the icon name')
+  iconDialog.hint:SetTextColor(.7, .7, .7, 1)
+
+  iconDialog.accept = CreateFrame('Button', iconDialog:GetName() .. 'Accept', iconDialog, 'UIPanelButtonTemplate')
+  iconDialog.accept:SetWidth(80)
+  iconDialog.accept:SetHeight(25)
+  iconDialog.accept:SetPoint('BOTTOMRIGHT', -15, 10)
+  iconDialog.accept:SetText('OK')
+  iconDialog.accept:SetBackdrop(backdrop)
+  iconDialog.accept:SetBackdropColor(0, .6, 0, .5)
+  iconDialog.accept:SetBackdropBorderColor(0, 1, 0, .7)
+  iconDialog.accept:SetScript('OnClick', function ()
+    if iconDialog.onAccept then iconDialog.onAccept(iconDialog.input:GetText()) end
+    iconDialog:Hide()
+  end)
+
+  iconDialog.cancel = CreateFrame('Button', iconDialog:GetName() .. 'Cancel', iconDialog, 'UIPanelButtonTemplate')
+  iconDialog.cancel:SetWidth(80)
+  iconDialog.cancel:SetHeight(25)
+  iconDialog.cancel:SetPoint('RIGHT', iconDialog.accept, 'LEFT', -5, 0)
+  iconDialog.cancel:SetText('Cancel')
+  iconDialog.cancel:SetBackdrop(backdrop)
+  iconDialog.cancel:SetBackdropColor(.6, 0, 0, .5)
+  iconDialog.cancel:SetBackdropBorderColor(1, 0, 0, .7)
+  iconDialog.cancel:SetScript('OnClick', function () iconDialog:Hide() end)
+
+  function PS.settings.showIconDialog(currentIcon, onAccept)
+    -- Strip Interface\Icons\ or Interface\\Icons\\ prefix for display
+    local displayPath = currentIcon or ''
+    displayPath = string.gsub(displayPath, '^Interface\\Icons\\', '')
+    displayPath = string.gsub(displayPath, '^Interface\\\\Icons\\\\', '')
+    iconDialog.input:SetText(displayPath)
+    iconDialog.onAccept = onAccept
+    iconDialog:Show()
+    iconDialog.input:SetFocus()
+  end
+
+  function PS.settings.getCustomIconKey(ringIdx, sliceIdx)
+    return ringIdx .. '_' .. sliceIdx
+  end
+
+  function PS.settings.setCustomIcon(ringIdx, sliceIdx, iconPath)
+    if not C.customIcons then C.customIcons = {} end
+    local key = PS.settings.getCustomIconKey(ringIdx, sliceIdx)
+
+    -- Normalize the icon path - always use single backslash and always prepend prefix
+    if iconPath and iconPath ~= '' then
+      -- Remove any existing prefix first
+      iconPath = string.gsub(iconPath, '^Interface\\Icons\\', '')
+      iconPath = string.gsub(iconPath, '^Interface\\\\Icons\\\\', '')
+      -- Add the prefix with single backslashes
+      iconPath = 'Interface\\Icons\\' .. iconPath
+      C.customIcons[key] = iconPath
+    else
+      C.customIcons[key] = nil
+    end
+  end
+
+  function PS.settings.getCustomIcon(ringIdx, sliceIdx)
+    if not C.customIcons then return nil end
+    local key = PS.settings.getCustomIconKey(ringIdx, sliceIdx)
+    return C.customIcons[key]
+  end
+
+  function PS.settings.loadCustomIconsToSlices(ringIdx, slices)
+    -- Load custom icons from config into slice objects
+    if not C.customIcons or not slices then return end
+    for i, slice in ipairs(slices) do
+      local customIcon = PS.settings.getCustomIcon(ringIdx, i)
+      if customIcon then
+        slice.customIcon = customIcon
+      end
+    end
+  end
+
+  function PS.settings.saveCustomIconsFromSlices(ringIdx, slices)
+    -- Save custom icons from slice objects back to config at their current positions
+    if not slices then return end
+    if not C.customIcons then C.customIcons = {} end
+
+    -- Clear all custom icons for this ring first
+    for key, _ in pairs(C.customIcons) do
+      if string.find(key, '^' .. ringIdx .. '_') then
+        C.customIcons[key] = nil
+      end
+    end
+
+    -- Save custom icons at their current positions using setCustomIcon to normalize
+    for i, slice in ipairs(slices) do
+      if slice.customIcon then
+        -- Use setCustomIcon to ensure proper normalization
+        PS.settings.setCustomIcon(ringIdx, i, slice.customIcon)
+      end
+    end
+  end
+
+  -----------------------------------------------------------------------------
   -- HEADER
   -----------------------------------------------------------------------------
   
@@ -374,12 +521,39 @@ PizzaSlices:RegisterModule('settings', function ()
     general.macroNames = frame
   end
 
+  do -- Checkbox: Show outfit names
+    local frame = CreateFrame('Frame', 'PizzaSlicesSettingsGeneralOutfitNames', general)
+    frame:SetFrameStrata('DIALOG')
+    frame:SetWidth(f:GetWidth() * .5)
+    frame:SetHeight(22)
+    frame:SetPoint('TOP', general.macroNames, 'TOP', 0, -30)
+    frame.label = frame:CreateFontString(frame:GetName() .. 'Label', 'DIALOG', 'GameFontWhite')
+    frame.label:SetFont(STANDARD_TEXT_FONT, 16, 'OUTLINE')
+    frame.label:SetJustifyH('LEFT')
+    frame.label:SetPoint('LEFT', 0, 1)
+    frame.label:SetText('Show outfit names')
+    frame.checkbox = CreateFrame('CheckButton', frame:GetName() .. 'Checkbox', frame, 'UICheckButtonTemplate')
+    frame.checkbox:SetNormalTexture("")
+    frame.checkbox:SetPushedTexture("")
+    frame.checkbox:SetHighlightTexture("")
+    frame.checkbox:SetCheckedTexture('Interface\\AddOns\\PizzaSlices\\img\\checkboxcheck')
+    frame.checkbox:SetBackdrop(backdrop)
+    frame.checkbox:SetBackdropColor(0, 0, 0, 0)
+    frame.checkbox:SetBackdropBorderColor(1, 1, 1, 1)
+    frame.checkbox:SetWidth(14)
+    frame.checkbox:SetHeight(14)
+    frame.checkbox:SetPoint("RIGHT" , 0, 0)
+    frame.checkbox:SetScript("OnClick", function () PizzaSlices_config.showOutfitNames = this:GetChecked() ~= nil end)
+    if C.showOutfitNames then frame.checkbox:SetChecked() end
+    general.outfitNames = frame
+  end
+
   do -- Checkbox: Black icon borders
     local frame = CreateFrame('Frame', 'PizzaSlicesSettingsGeneralBlackBorders', general)
     frame:SetFrameStrata('DIALOG')
     frame:SetWidth(f:GetWidth() * .5)
     frame:SetHeight(22)
-    frame:SetPoint('TOP', general.macroNames, 'TOP', 0, -30)
+    frame:SetPoint('TOP', general.outfitNames, 'TOP', 0, -30)
     frame.label = frame:CreateFontString(frame:GetName() .. 'Label', 'DIALOG', 'GameFontWhite')
     frame.label:SetFont(STANDARD_TEXT_FONT, 16, 'OUTLINE')
     frame.label:SetJustifyH('LEFT')
@@ -1058,6 +1232,32 @@ PizzaSlices:RegisterModule('settings', function ()
     end
   end
 
+  function showTextInFrameBySlice(f, slice)
+    local shouldShowText = false
+    local displayName = nil
+
+    if (string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames) then
+      displayName = string.gsub(slice.name, 'Macro: ', '');
+      shouldShowText = true;
+    elseif (string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() and C.showOutfitNames) then
+      displayName = slice.name;
+      shouldShowText = true;
+    end
+
+    if (shouldShowText and displayName) then
+      if not f.text then
+        f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
+        f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
+        f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
+        f.text:SetTextColor(1, 1, 1, 1)
+      end
+      f.text:SetText(PS.utils.getTextureText(displayName))
+      f.text:Show()
+    elseif (f.text) then
+      f.text:Hide();
+    end
+  end
+
   function loadRingSlices()
     local r = rings.edit.content.ring
 
@@ -1115,10 +1315,26 @@ PizzaSlices:RegisterModule('settings', function ()
         else
           GameTooltip:AddLine(PS.Colors.secondary .. slice.name)
         end
+        GameTooltip:AddLine('Right-click to set custom icon', .7, .7, .7)
         GameTooltip:Show()
       end)
       f:SetScript('OnLeave', function ()
         GameTooltip:Hide()
+      end)
+
+      -- Right-click to set custom icon
+      f:SetScript('OnMouseUp', function ()
+        if arg1 == 'RightButton' then
+          local currentIcon = slice.customIcon or slice.tex or ''
+          PS.settings.showIconDialog(currentIcon, function (iconPath)
+            -- Save to config (which normalizes the path)
+            PS.settings.setCustomIcon(rings.edit.ringIdx, idx, iconPath)
+            -- Get the normalized path from config and set on slice
+            slice.customIcon = PS.settings.getCustomIcon(rings.edit.ringIdx, idx)
+            -- Refresh the display
+            loadRingSlices()
+          end)
+        end
       end)
 
       -- Drag-n-Drop logic
@@ -1218,6 +1434,11 @@ PizzaSlices:RegisterModule('settings', function ()
             f:ClearAllPoints()
             f:SetPoint('TOP', 0, (idx - 1) * -40 - 2)
           end
+
+          -- Save custom icons after reordering
+          if inserted then
+            PS.settings.saveCustomIconsFromSlices(rings.edit.ringIdx, rings.edit.ring.slices)
+          end
         end
 
         r.placeholder:Hide()
@@ -1296,32 +1517,12 @@ PizzaSlices:RegisterModule('settings', function ()
         f.tex = f:CreateTexture(f:GetName() .. 'Tex', 'ARTWORK')
         f.tex:SetAllPoints(f)
       end
-      
-      if string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames then
-        local macroName = string.gsub(slice.name, 'Macro: ', '')
-        if not f.text then
-          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
-          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
-          f.text:SetTextColor(1, 1, 1, 1)
-        end
-        f.text:SetText(PS.utils.getTextureText(macroName))
-        f.text:Show()
-      elseif string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
-        local outfitName = slice.name;
-        if not f.text then
-          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
-          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
-          f.text:SetTextColor(1, 1, 1, 1)
-        end
-        f.text:SetText(PS.utils.getTextureText(outfitName))
-        f.text:Show()
-      elseif (f.text) then
-        f.text:Hide();
-      end
 
-      f.tex:SetTexture(slice.tex)
+      showTextInFrameBySlice(f, slice);
+
+      -- Use custom icon from slice object if set, otherwise use the default icon
+      local iconPath = slice.customIcon or slice.tex
+      f.tex:SetTexture(iconPath)
     end
   end
 
@@ -1425,30 +1626,7 @@ PizzaSlices:RegisterModule('settings', function ()
         clone:StartMoving()
         clone.tex:SetTexture(sl.tex)
 
-        if string.sub(sl.action, 1, 6) == 'macro:' and C.showMacroNames then
-          local macroName = string.gsub(sl.name, 'Macro: ', '')
-          if not f.clone.text then
-            f.clone.text = f:CreateFontString(f.clone:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-            f.clone.text:SetPoint('CENTER', f.clone, 'CENTER', 0, 0)
-            f.clone.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
-            f.clone.text:SetTextColor(1, 1, 1, 1)
-          end
-          f.clone.text:SetText(PS.utils.getTextureText(macroName))
-          f.clone.text:Show()
-        elseif string.sub(sl.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
-          local outfitName = sl.name;
-          if not f.clone.text then
-            f.clone.text = f:CreateFontString(f.clone:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-            f.clone.text:SetPoint('CENTER', f.clone, 'CENTER', 0, 0)
-            f.clone.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
-            f.clone.text:SetTextColor(1, 1, 1, 1)
-          end
-          f.clone.text:SetText(PS.utils.getTextureText(outfitName))
-          f.clone.text:Show()
-        else
-          f.clone.text:Hide();
-        end
-
+        showTextInFrameBySlice(f.clone, sl);
         rings.edit.content.ring:Hide()
         rings.edit.content.ringdrop:Show()
       end)
@@ -1459,9 +1637,6 @@ PizzaSlices:RegisterModule('settings', function ()
         rings.edit.content.ring:Show()
         f.clone:StopMovingOrSizing()
         f.clone:Hide()
-        if (f.clone.text) then
-          f.clone.text:Hide();
-        end
       end)
 
       if not f.tex then
@@ -1469,30 +1644,7 @@ PizzaSlices:RegisterModule('settings', function ()
         f.tex:SetAllPoints(f)
       end
 
-      if string.sub(slice.action, 1, 6) == 'macro:' and C.showMacroNames then
-        local macroName = string.gsub(slice.name, 'Macro: ', '')
-        if not f.text then
-          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
-          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
-          f.text:SetTextColor(1, 1, 1, 1)
-        end
-        f.text:SetText(PS.utils.getTextureText(macroName))
-        f.text:Show()
-      elseif string.sub(slice.action, 1, 7) == "outfit:" and PS.utils.hasOutfitter() then
-        local outfitName = slice.name;
-        if not f.text then
-          f.text = f:CreateFontString(f:GetName() .. 'Text', 'OVERLAY', 'GameFontWhite')
-          f.text:SetPoint('CENTER', f, 'CENTER', 0, 0)
-          f.text:SetFont(STANDARD_TEXT_FONT, 9, 'THINOUTLINE')
-          f.text:SetTextColor(1, 1, 1, 1)
-        end
-        f.text:SetText(PS.utils.getTextureText(outfitName))
-        f.text:Show()
-      elseif (f.text) then
-        f.text:Hide();
-      end
-
+      showTextInFrameBySlice(f, slice);
       f.tex:SetTexture(slice.tex)
     end
   end
@@ -1559,6 +1711,12 @@ PizzaSlices:RegisterModule('settings', function ()
     end
 
     local idx = ringIdx or PS.utils.length(PizzaSlices_rings) + 1
+
+    -- Load custom icons into slice objects
+    if ringIdx then
+      PS.settings.loadCustomIconsToSlices(ringIdx, ring.slices)
+    end
+
     if not rings.edit then rings.edit = createEditFrame(idx, ring) end
     rings.edit.header:SetScript('OnCursorChanged', function ()
       ring.name = this:GetText()
@@ -1594,6 +1752,8 @@ PizzaSlices:RegisterModule('settings', function ()
   end
 
   function PS.settings.save(idx, ring)
+    -- Save custom icons from slice objects to config
+    PS.settings.saveCustomIconsFromSlices(idx, ring.slices)
     _G.PizzaSlices_rings[idx] = ring
     PS.settings.update()
   end
