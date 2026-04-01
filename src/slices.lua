@@ -76,9 +76,9 @@ PizzaSlices:RegisterModule('slices', function ()
       if not tabName then return false end
       if tab then return tabName == tab end
       if tabName == 'General' then return false end
-      if tabName == 'ZMounts' then return false end
-      if tabName == 'ZzCompanions' then return false end
-      if tabName == 'ZzzzToys' then return false end
+      if tabName == 'Mounts' then return false end
+      if tabName == 'Companions' then return false end
+      if tabName == 'Toys' then return false end
       return true
     end
 
@@ -92,7 +92,7 @@ PizzaSlices:RegisterModule('slices', function ()
       local slices = {}
 
       -- Add class mounts if applicable
-      if tab == 'ZMounts' then
+      if tab == 'Mounts' then
         local _, class = UnitClass('player')
         local classMounts = {}
 
@@ -277,14 +277,14 @@ PizzaSlices:RegisterModule('slices', function ()
 
   local getSlices = {
     ['Abilities'] = getSpellSlices(),
-    ['Companions'] = getSpellSlices('ZzCompanions'),
+    ['Companions'] = getSpellSlices('Companions'),
     ['General'] = getSpellSlices('General'),
     ['ItemRack Sets'] = getItemrackSlices,
     ['Items'] = getItemSlices,
     ['Macros'] = getMacroSlices,
-    ['Mounts'] = getSpellSlices('ZMounts'),
+    ['Mounts'] = getSpellSlices('Mounts'),
     -- ['Raid Marks'] = getRaidmarkSlices,
-    ['Toys'] = getSpellSlices('ZzzzToys'),
+    ['Toys'] = getSpellSlices('Toys'),
     ["Outfitter"] = PS.utils.hasOutfitter() and getOutfitterSlices or nil,
   }
 

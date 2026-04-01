@@ -19,7 +19,8 @@ PizzaSlices:RegisterModule('rings', function ()
     -- If player doesn't have any rings, use the default ones initially.
     -- But only if we know that the player's spellbook has already been
     -- populated. Otherwise we won't be able to load the mounts yet.
-    if withSpells and not _G.PizzaSlices_rings then
+    -- withSpells and 
+    if not _G.PizzaSlices_rings then
       _G.PizzaSlices_rings = PS.rings.default
     end
 
