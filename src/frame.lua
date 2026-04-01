@@ -131,6 +131,11 @@ PizzaSlices:RegisterModule('frame', function ()
           local bag, slot = PS.utils.findItem(slice.name)
           if bag and slot then
             start, duration, enable = GetContainerItemCooldown(bag, slot)
+          else
+            slot = PS.utils.findInventoryItem(slice.name);
+            if (slot) then
+              start, duration, enable = GetInventoryItemCooldown("player", slot);
+            end
           end
         end
 

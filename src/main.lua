@@ -170,6 +170,14 @@ local actions = {
       else
         UseContainerItem(bag, slot)
       end
+    else
+      slot = PS.utils.findInventoryItem(slice.name);
+      if (slot) then
+        local _, duration = GetInventoryItemCooldown("player", slot);
+        if (duration == 0) then
+          UseInventoryItem(slot);
+        end
+      end
     end
   end,
 

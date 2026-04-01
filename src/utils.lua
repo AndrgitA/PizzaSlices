@@ -1,4 +1,5 @@
 PizzaSlices:RegisterModule('utils', function ()
+  local MAX_INVENTORY_SLOTS = 19;
   PS.utils = {}
 
   -- TODO: Move math utils to separate math module?
@@ -198,6 +199,10 @@ PizzaSlices:RegisterModule('utils', function ()
   end
 
   function PS.utils.findItem(name)
+    if (not name) then
+      return nil, nil;
+    end
+
     for bag = 0, 4 do
       for slot = 1, GetContainerNumSlots(bag) do
         local link = GetContainerItemLink(bag, slot)
@@ -210,6 +215,24 @@ PizzaSlices:RegisterModule('utils', function ()
         end
       end
     end
+  end
+
+  function PS.utils.findInventoryItem(name)
+    if (not name) then
+      return nil;
+    end
+
+    for slot=0, MAX_INVENTORY_SLOTS do
+      local link = GetInventoryItemLink("player", slot);
+      if link then
+        local _, _, id = string.find(link, '(%d+):');
+        local itemName = GetItemInfo(id);
+        if (itemName and itemName ~= '' and string.lower(itemName) == string.lower(name)) then
+          return slot;
+        end
+      end
+    end
+    return nil;
   end
 
   function PS.utils.getItemCount(name)
